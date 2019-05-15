@@ -34,10 +34,6 @@ class WXPay(object):
         self.apiclient_cert_path = app.config.get('WXPAY_APICLIENT_CERT_PATH')
         self.apiclient_key_path = app.config.get('WXPAY_APICLIENT_KEY_PATH')
 
-        # 发送请求的session
-        self.session = requests.Session()
-        self.session.verify = app.config.get('WXPAY_ROOTCA_PATH', None)
-
         self.sandbox = app.config.get('WXPAY_SANDBOX', False)
         if self.sandbox:  # 沙箱模式时自动获取sandbox_signkey并替换self.key
             self.key = self.get_sandbox_signkey()
@@ -84,10 +80,11 @@ class WXPay(object):
             path = '/sandboxnew' + path
 
         url = urljoin(self.base_url, path)
-        r = self.session.post(url,
-                              data=xml_data,
-                              timeout=self.request_timeout,
-                              cert=apiclient_cert)
+        session = requests.Session()
+        r = session.post(url,
+                         data=xml_data,
+                         timeout=self.request_timeout,
+                         cert=apiclient_cert)
         if r.encoding == 'ISO-8859-1':
             r.encoding = 'UTF-8'
         return r
